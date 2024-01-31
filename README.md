@@ -23,5 +23,5 @@
 | Jellyfin        | <https://jellyfin.org/downloads/docker>                                                               |
 | mealie          | <https://nightly.mealie.io/documentation/getting-started/installation/sqlite/>                        |
 | nextcloud       | <https://github.com/nextcloud/all-in-one/tree/main/manual-install>                                    |
-| Rearfik         | <https://doc.traefik.io/traefik/getting-started/install-traefik/>                                     |
+| Tearfik         | <https://doc.traefik.io/traefik/getting-started/install-traefik/>                                     |
 | uptime kuma     | <https://github.com/louislam/uptime-kuma?tab=readme-ov-file#-how-to-install>                          |
