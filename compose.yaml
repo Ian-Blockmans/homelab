@@ -1,0 +1,662 @@
+version: "3.8"
+  
+services:
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/Brussels
+    ports:
+      - "${PORT:-8191}:8191"
+    restart: unless-stopped
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+  wyoming-whisper:
+    restart: unless-stopped
+    ports:
+      - '10300:10300'
+    image: rhasspy/wyoming-whisper
+    volumes:
+      - /disk2/whisper/data:/data
+    command: "--model small-int8 --language en"
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+  speedtest:
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    image: openspeedtest/latest
+    deploy:
+      replicas: 0
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.speed.entrypoints: "web, websecure"
+        traefik.http.routers.speed.rule: "Host(`speed.ian.lan`)"
+        traefik.http.routers.speed.tls: "true"
+        traefik.http.services.all_speedtest.loadbalancer.server.port: "3000"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+#  youtube-dl:
+#    image: "youtube-dl-server:master"
+#    # network_mode: "service:vpn"
+#    environment:
+#      - PUID=1000
+#      - PGID=1000
+#    volumes:
+#      - /nfs/youtube-dl/web:/youtube-dl
+#      - /nfs/youtube-dl/downloads:/downloads
+#    restart: unless-stopped
+#    deploy:
+#      labels:
+#        traefik.enable: "true"
+#        traefik.http.routers.youtube-dl.entrypoints: "web, websecure"
+#        traefik.http.routers.youtube-dl.rule: "Host(`youtube-dl.ian.lan`)"
+#        traefik.http.routers.youtube-dl.tls: "true"
+#        traefik.http.services.all_youtube-dl.loadbalancer.server.port: "8080"
+#      placement:
+#        constraints:
+#          - node.hostname == plex-ubuntu
+  
+  bazarr:
+    environment:
+      - TZ=Europe/London
+    image: lscr.io/linuxserver/bazarr:latest
+    ipc: private
+    restart: unless-stopped
+    volumes:
+      - /disk2/configs/bazarr_conf:/config
+      - /nfs/arr:/data
+    ports:
+      - 6767:6767
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.bazarr.entrypoints: "web, websecure"
+        traefik.http.routers.bazarr.rule: "Host(`bazarr.ian.lan`)"
+        traefik.http.routers.bazarr.tls: "true"
+        traefik.http.services.all_bazarr.loadbalancer.server.port: "6767"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  grafana:
+    environment:
+      - PATH=/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
+      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_PATHS_HOME=/usr/share/grafana
+      - GF_PATHS_LOGS=/var/log/grafana
+      - GF_PATHS_PLUGINS=/var/lib/grafana/plugins
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/grafana:/var/lib/grafana
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.grafana.entrypoints: "web, websecure"
+        traefik.http.routers.grafana.rule: "Host(`graph.ianb.be`)"
+        traefik.http.routers.grafana.tls: "true"
+        traefik.http.routers.grafana.tls.certresolver: "production"
+        traefik.http.services.all_grafana.loadbalancer.server.port: "3000"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  influxdb:
+    user: "1001"
+    environment:
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - GOSU_VER=1.12
+      - INFLUXDB_VERSION=2.3.0
+      - INFLUX_CLI_VERSION=2.3.0
+      - INFLUX_CONFIGS_PATH=/etc/influxdb2/influx-configs
+      - INFLUXD_INIT_PORT=9999
+      - INFLUXD_INIT_PING_ATTEMPTS=600
+      - DOCKER_INFLUXDB_INIT_CLI_CONFIG_NAME=default
+    image: influxdb:latest
+    ports:
+      - 8083:8083/tcp
+      - 8086:8086/tcp
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/influxdb/config:/etc/influxdb2
+      - /nfs/configs/influxdb/data:/var/lib/influxdb2
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+
+
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v1.0.0-RC2
+    ports:
+        - "9926:9000" # 
+    volumes:
+      - /nfs/configs/mealie:/app/data/
+    environment:
+    # Set Backend ENV Variables Here
+      - ALLOW_SIGNUP=false
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Brussels
+      - MAX_WORKERS=1
+      - WEB_CONCURRENCY=1
+      - BASE_URL=https://meal.ianb.be
+      - DEFAULT_EMAIL=ian.blockmans@gmail.com
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=465
+      - SMTP_FROM_NAME=mealie
+      - SMTP_AUTH_STRATEGY=SSL
+      - SMTP_FROM_EMAIL=ian.blockmans@gmail.com
+      - SMTP_USER=ian.blockmans@gmail.com
+      - SMTP_PASSWORD=
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1000M #
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.mealie.entrypoints: "web, websecure"
+        traefik.http.routers.mealie.rule: "Host(`meal.ianb.be`)"
+        traefik.http.routers.mealie.tls: "true"
+        traefik.http.routers.mealie.tls.certresolver: "production"
+        traefik.http.services.all_mealie.loadbalancer.server.port: "9000"
+
+  minecraft-server-sevtech:
+    environment:
+      - VERSION=1.12.2
+      - CF_SERVER_MOD=/data/SevTech_Sky_Server_3.2.3.zip
+      - EULA=TRUE
+      - DIFFICULTY=normal
+      - OPS=masta_b
+      - MAX_PLAYERS=5
+      - MODE=survival
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
+      - LANG=C.UTF-8
+      - JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk/jre
+      - JAVA_VERSION=8u212
+      - JAVA_ALPINE_VERSION=8.212.04-r0
+      - UID=1001
+      - GID=1001
+      - TYPE=CURSEFORGE
+    image: itzg/minecraft-server:java8
+    ports:
+      - 25565:25565/tcp
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/sevtech/data:/data
+    deploy:
+      replicas: 0
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  prowlarr:
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Brussels
+    image: lscr.io/linuxserver/prowlarr:develop
+    ports:
+      - 9696:9696/tcp
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/prowlarr_conf:/config
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.prowlarr.entrypoints: "web, websecure"
+        traefik.http.routers.prowlarr.rule: "Host(`prowlarr.ian.lan`)"
+        traefik.http.routers.prowlarr.tls: "true"
+        traefik.http.services.all_prowlarr.loadbalancer.server.port: "9696"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Brussels
+      - WEBUI_PORT=8081
+    volumes:
+      - /nfs/configs/qbit_conf:/config
+      - /nfs/arr/downloads:/downloads
+    ports:
+      - 8081:8081
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.qbit.entrypoints: "web, websecure"
+        traefik.http.routers.qbit.rule: "Host(`qbit.ian.lan`)"
+        traefik.http.routers.qbit.tls: "true"
+        traefik.http.services.all_qbittorrent.loadbalancer.server.port: "8081"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  radarr:
+    environment:
+      - PUID=1001
+      - PGID=1001
+      - TZ=Europe/Brussels
+    image: linuxserver/radarr:latest
+    ports:
+      - 7878:7878/tcp
+    restart: unless-stopped
+    volumes:
+      - /disk2/configs/radarr_conf:/config
+      - /nfs/arr:/data
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.radarr.entrypoints: "web, websecure"
+        traefik.http.routers.radarr.rule: "Host(`radarr.ian.lan`)"
+        traefik.http.routers.radarr.tls: "true"
+        traefik.http.services.all_radarr.loadbalancer.server.port: "7878"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  sonarr:
+    environment:
+      - TZ=Europe/Brussels
+      - PUID=1001
+      - PGID=1001
+    image: linuxserver/sonarr:latest
+    ports:
+      - 8989:8989/tcp
+    restart: unless-stopped
+    volumes:
+      - /disk2/configs/sonarr_conf:/config
+      - /nfs/arr:/data
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.sonarr.entrypoints: "web, websecure"
+        traefik.http.routers.sonarr.rule: "Host(`sonarr.ian.lan`)"
+        traefik.http.routers.sonarr.tls: "true"
+        traefik.http.services.all_sonarr.loadbalancer.server.port: "8989"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  teamspeak:
+    user: "9987"
+    environment:
+      - TS3SERVER_LICENSE=accept
+    image: teamspeak:latest
+    ports:
+      - 10011:10011/tcp
+      - 30033:30033/tcp
+      - 9987:9987/udp
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/teamspeak:/var/ts3server
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  telegraf:
+    image: telegraf:latest
+    ports:
+      - 2003:2003/tcp
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+  
+  reverse-proxy:
+      # The official v2 Traefik docker image
+      image: traefik:v2.10
+      # Enables the web UI and tells Traefik to listen to docker
+      command: --api.insecure=true --providers.docker
+      ports:
+        # The HTTP port
+        - "80:80"
+        - "443:443"
+        # The Web UI (enabled by --api.insecure=true)
+        - "8080:8080"
+      volumes:
+        - /disk2/configs/traefik:/etc/traefik
+        # So that Traefik can listen to the Docker events
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      restart: unless-stopped
+      deploy:
+        replicas: 1
+        placement:
+          constraints:
+            - node.role == manager
+
+  beammp-server:
+    environment:
+      - "AUTH_KEY=06e66127-b56a-4c49-82f8-daef267ed2cd"
+      - "NAME=rasta"
+      - "DEBUG=false"
+      - "PRIVATE=false"
+      - "PORT=30814"
+      - "CARS=1"
+      - "MAX_PLAYERS=10"
+      - "MAP=/levels/c1/info.json"
+      - "DESC=tmp"
+      - "ADDITIONAL_SERVER_CONFIG_TOML="
+    image: "rouhim/beammp-server:latest"
+    ports:
+      - "30814:30814/tcp"
+      - "30814:30814/udp"
+    volumes:
+      - "/nfs/beammp_mods:/beammp/Resources"
+    deploy:
+      replicas: 0
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  ganymede-api:
+    image: ghcr.io/zibbp/ganymede:main
+    restart: unless-stopped
+    environment:
+      - TZ=America/Chicago # Set to your timezone
+      - DB_HOST=ganymede-db
+      - DB_PORT=5432
+      - DB_USER=ganymede
+      - DB_PASS=
+      - DB_NAME=ganymede-prd
+      - DB_SSL=disable
+      - JWT_SECRET=SECRET
+      - JWT_REFRESH_SECRET=SECRET
+      - TWITCH_CLIENT_ID=oqfeimlnlpkuclq8j2v8v245oijktb
+      - TWITCH_CLIENT_SECRET=53ksbfw35xxh49umby8ao8pb95hhr4
+      - FRONTEND_HOST=http://192.168.1.8:4801
+      - TEMPORAL_URL=192.168.1.8:7233
+      # WORKER
+      - MAX_CHAT_DOWNLOAD_EXECUTIONS=5
+      - MAX_CHAT_RENDER_EXECUTIONS=3
+      - MAX_VIDEO_DOWNLOAD_EXECUTIONS=5
+      - MAX_VIDEO_CONVERT_EXECUTIONS=3
+      # OPTIONAL
+      # - OAUTH_PROVIDER_URL=
+      # - OAUTH_CLIENT_ID=
+      # - OAUTH_CLIENT_SECRET=
+      # - OAUTH_REDIRECT_URL=http://IP:PORT/api/v1/auth/oauth/callback # Points to the API service
+    volumes:
+      - /nfs/ganymede/vod_storage:/vods
+      - /nfs/ganymede/logs:/logs
+      - /nfs/ganymede/data:/data
+      # Uncomment below to persist temp files
+      - /disk2/tmp:/tmp
+    ports:
+      - 4800:4000
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  ganymede-temporal:
+    image: ghcr.io/zibbp/ganymede-temporal:latest
+    restart: unless-stopped
+    volumes:
+      - /nfs/ganymede/temporal:/data
+    ports:
+      - 7233:7233
+      - 8233:8233 # web ui - optional  
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  ganymede-frontend:
+    image: ghcr.io/zibbp/ganymede-frontend:latest
+    restart: unless-stopped
+    environment:
+      - API_URL=http://192.168.1.8:4800 # Points to the API service
+      - CDN_URL=http://192.168.1.8:4802 # Points to the CDN service
+      - SHOW_SSO_LOGIN_BUTTON=true # show/hide SSO login button on login page
+      - FORCE_SSO_AUTH=false # force SSO auth for all users (bypasses login page and redirects to SSO)
+      - REQUIRE_LOGIN=false # require login to view videos
+    ports:
+      - 4801:3000
+    deploy:
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.ganymede.entrypoints: "web, websecure"
+        traefik.http.routers.ganymede.rule: "Host(`ganymede.ian.lan`)"
+        traefik.http.routers.ganymede.tls: "true"
+        traefik.http.services.all_ganymede-frontend.loadbalancer.server.port: "3000"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+  
+  ganymede-db:
+    image: postgres:14
+    volumes:
+      - /nfs/ganymede/ganymede-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=
+      - POSTGRES_USER=ganymede
+      - POSTGRES_DB=ganymede-prd
+    ports:
+      - 4803:5432
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+  
+  ganymede-nginx:
+    image: nginx
+    volumes:
+      - /nfs/ganymede/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /nfs/ganymede/vod_storage:/mnt/vods
+    ports:
+      - 4802:8080
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+
+  next-db:
+    image: mariadb:11.0.2
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    volumes:
+      - /nfs/nextcloud/db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD= #change this
+      - MYSQL_PASSWORD= #change this
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud 
+    hostname: "next-db"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  next-app:
+    image: nextcloud
+    restart: always
+    ports:
+      - 11000:80
+    links:
+      - "next-db"
+    volumes:
+      - /nfs/nextcloud/html:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=  #change this to match the mysql_password above
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=next-db
+    deploy:
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.nextcloudLan.entrypoints: "web, websecure"
+        traefik.http.routers.nextcloudLan.rule: "Host(`next.ian.lan`)"
+        traefik.http.routers.nextcloudLan.tls: "true"
+        traefik.http.routers.nextcloudLan.middlewares: "nextcloud_redirectregex"
+        traefik.http.routers.nextcloudWan.entrypoints: "web, websecure"
+        traefik.http.routers.nextcloudWan.rule: "Host(`next.ianb.be`)"
+        traefik.http.routers.nextcloudWan.tls: "true"
+        traefik.http.routers.nextcloudWan.tls.certresolver: "production"
+        traefik.http.routers.nextcloudWan.middlewares: "nextcloud_redirectregex"
+        traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent: "true"
+        traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex: "https://(.*)/.well-known/(?:card|cal)dav"
+        traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement: "https://$${1}/remote.php/dav"
+        traefik.http.services.all_next-app.loadbalancer.server.port: "80"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    restart: unless-stopped
+    ports:
+      - '7575:7575'
+    volumes:
+      - /nfs/configs/homarr/configs:/app/data/configs
+      - /nfs/configs/homarr/icons:/app/public/icons
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.homarr.entrypoints: "web, websecure"
+        traefik.http.routers.homarr.rule: "Host(`homarr.ian.lan`)"
+        traefik.http.routers.homarr.tls: "true"
+        traefik.http.services.all_homarr.loadbalancer.server.port: "7575"
+      placement:
+        constraints:
+          - node.hostname == feul
+
+  it-tools:
+    image: "ghcr.io/corentinth/it-tools:latest"
+    restart: unless-stopped
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.it-tools.entrypoints: "web, websecure"
+        traefik.http.routers.it-tools.rule: "Host(`it-tools.ian.lan`)"
+        traefik.http.routers.it-tools.tls: "true"
+        traefik.http.services.all_it-tools.loadbalancer.server.port: "80"
+      placement:
+        constraints:
+          - node.hostname == feul
+  
+  jellyfin:
+    environment:
+      - "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
+      - "HEALTHCHECK_URL=http://localhost:8096/health"
+      - "JELLYFIN_CACHE_DIR=/cache"
+      - "JELLYFIN_CONFIG_DIR=/config/config"
+      - "JELLYFIN_DATA_DIR=/config"
+      - "JELLYFIN_FFMPEG=/usr/lib/jellyfin-ffmpeg/ffmpeg"
+      - "JELLYFIN_LOG_DIR=/config/log"
+      - "JELLYFIN_WEB_DIR=/jellyfin/jellyfin-web"
+      - "LANG=en_US.UTF-8"
+      - "LANGUAGE=en_US:en"
+      - "LC_ALL=en_US.UTF-8"
+      - "NVIDIA_DRIVER_CAPABILITIES=compute,video,utility"
+      - "NVIDIA_VISIBLE_DEVICES=all"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+    image: "jellyfin/jellyfin:latest"
+    networks:
+      - outside
+
+    restart: "unless-stopped"
+    volumes:
+      - "/nfs/arr:/arr"
+      - "/disk2/configs/jellyfin/cache:/cache"
+      - "/disk2/configs/jellyfin/config:/config"
+      - "/nfs/media:/media"
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.jellyfin.entrypoints: "web, websecure"
+        traefik.http.routers.jellyfin.rule: "Host(`jellyfin.ian.lan`)"
+        traefik.http.routers.jellyfin.tls: "true"
+        traefik.http.services.all_jellyfin.loadbalancer.server.port: "8096"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+#  prometheus:
+#    image: "prom/prometheus:latest"
+#    ports:
+#      - "9090:9090/tcp"
+#    restart: "unless-stopped"
+#    volumes:
+#      - "/nfs/configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+#    deploy:
+ #     replicas: 0
+#      placement:
+#        constraints:
+#          - node.hostname == plex-ubuntu
+
+  terraria:
+    environment:
+      - "WORLD_FILENAME=Flexing_Sunrise.wld"
+      - "CONFIGPATH=/root/.local/share/Terraria/Worlds"
+    image: "ryshe/terraria:latest"
+    ports:
+      - "7777:7777/tcp"
+    volumes:
+      - "/nfs/configs/terraria:/root/.local/share/Terraria/Worlds"
+    deploy:
+      replicas: 0
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    volumes:
+      - /disk2/configs/uptimekuma/data:/app/data
+    restart: always
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.uptime.entrypoints: "web, websecure"
+        traefik.http.routers.uptime.rule: "Host(`uptime.ian.lan`)"
+        traefik.http.routers.uptime.tls: "true"
+        traefik.http.services.all_uptime-kuma.loadbalancer.server.port: "3001"
+      placement:
+        constraints:
+          - node.hostname == feul
+networks:
+  default:
+    name: traefik
+    external: true      
+  outside:
+    external:
+      name: "host"
