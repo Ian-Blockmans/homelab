@@ -356,7 +356,7 @@ services:
 
   beammp-server:
     environment:
-      - "AUTH_KEY=06e66127-b56a-4c49-82f8-daef267ed2cd"
+      - "AUTH_KEY="
       - "NAME=rasta"
       - "DEBUG=false"
       - "PRIVATE=false"
@@ -392,7 +392,7 @@ services:
       - JWT_SECRET=SECRET
       - JWT_REFRESH_SECRET=SECRET
       - TWITCH_CLIENT_ID=oqfeimlnlpkuclq8j2v8v245oijktb
-      - TWITCH_CLIENT_SECRET=53ksbfw35xxh49umby8ao8pb95hhr4
+      - TWITCH_CLIENT_SECRET=
       - FRONTEND_HOST=http://192.168.1.8:4801
       - TEMPORAL_URL=192.168.1.8:7233
       # WORKER
