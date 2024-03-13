@@ -95,7 +95,7 @@ def file(net, port, ip, subdomain):
             '\n      entrypoints: \"websecure\"',
             '\n      rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
             '\n      tls:',
-            '\n      certResolver: \"'+ cert +'\"',
+            '\n        certResolver: \"'+ cert +'\"',
             '\n      service: '+ subdomain +'')
     
     if net == 'b':
@@ -132,7 +132,7 @@ def file(net, port, ip, subdomain):
             '\n      entrypoints: \"websecure\"',
             '\n      rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
             '\n      tls:',
-            '\n      certResolver: \"'+ cert +'\"',
+            '\n        certResolver: \"'+ cert +'\"',
             '\n      service: '+ subdomain +'')
     
     print('\n\n  services:',
