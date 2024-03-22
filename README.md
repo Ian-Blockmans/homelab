@@ -25,4 +25,5 @@
 | nextcloud       | <https://github.com/nextcloud/all-in-one/tree/main/manual-install>                                    |
 | Tearfik         | <https://doc.traefik.io/traefik/getting-started/install-traefik/>                                     |
 | uptime kuma     | <https://github.com/louislam/uptime-kuma?tab=readme-ov-file#-how-to-install>                          |
-| netbird         | <https://docs.netbird.io/selfhosted/selfhosted-guide>                          |
+| netbird         | <https://docs.netbird.io/selfhosted/selfhosted-guide>                                                 |
+| zitadel         | <https://zitadel.com/docs/self-hosting/deploy/overview>                                               |
