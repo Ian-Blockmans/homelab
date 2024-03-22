@@ -26,4 +26,3 @@
 | Tearfik         | <https://doc.traefik.io/traefik/getting-started/install-traefik/>                                     |
 | uptime kuma     | <https://github.com/louislam/uptime-kuma?tab=readme-ov-file#-how-to-install>                          |
 | netbird         | <https://docs.netbird.io/selfhosted/selfhosted-guide>                          |
-
