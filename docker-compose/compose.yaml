@@ -1,6 +1,254 @@
 version: "3.8"
-  
+
 services:
+
+  #UI dashboard
+  netbird-dashboard:
+    image: netbirdio/dashboard:latest
+    restart: unless-stopped
+    #ports:
+    #  - 80:80
+    #  - 443:443
+    environment:
+      # Endpoints
+      - NETBIRD_MGMT_API_ENDPOINT=https://netbird.ianb.be:443
+      - NETBIRD_MGMT_GRPC_API_ENDPOINT=https://netbird.ianb.be:443
+      # OIDC
+      - AUTH_AUDIENCE=258238514297110699@netbird
+      - AUTH_CLIENT_ID=258238514297110699@netbird
+      - AUTH_CLIENT_SECRET=
+      - AUTH_AUTHORITY=https://zitadel.ianb.be
+      - USE_AUTH0=false
+      - AUTH_SUPPORTED_SCOPES=openid profile email offline_access api
+      - AUTH_REDIRECT_URI=/auth
+      - AUTH_SILENT_REDIRECT_URI=/silent-auth
+      - NETBIRD_TOKEN_SOURCE=accessToken
+      # SSL
+      - NGINX_SSL_PORT=443
+    volumes:
+      - /nfs/configs/netbird/letsencrypt:/etc/letsencrypt/
+    deploy:
+      replicas: 1
+      labels:
+      - traefik.enable=true
+      - traefik.http.routers.netbird.entrypoints=websecure
+      - traefik.http.routers.netbird.rule=Host(`netbird.ianb.be`)
+      - traefik.http.routers.netbird.tls=true
+      - traefik.http.routers.netbird.tls.certresolver=production
+      - traefik.http.services.all_netbird-dashboard.loadbalancer.passHostHeader=true
+      - traefik.http.services.all_netbird-dashboard.loadbalancer.server.port=80
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+# Signal
+  netbird-signal:
+    image: netbirdio/signal:latest
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/netbird/signal:/var/lib/netbird
+    #ports:
+    #  - 10000:80
+  #      # port and command for Let's Encrypt validation
+  #      - 443:443
+  #    command: ["--letsencrypt-domain", "$NETBIRD_LETSENCRYPT_DOMAIN", "--log-file", "console"]
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.netbird-signal.rule=Host(`netbird.ianb.be`) && PathPrefix(`/signalexchange.SignalExchange/`)
+        - traefik.http.routers.netbird-signal.entrypoints=websecure
+        - traefik.http.routers.netbird-signal.tls=true
+        - traefik.http.routers.netbird-signal.tls.certresolver=production
+        - traefik.http.services.all_netbird-signal.loadbalancer.passHostHeader=true
+        - traefik.http.services.all_netbird-signal.loadbalancer.server.port=80
+        - traefik.http.services.all_netbird-signal.loadbalancer.server.scheme=h2c
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  # Management
+  netbird-management:
+    image: netbirdio/management:latest
+    restart: unless-stopped
+    depends_on:
+      - netbird-dashboard
+    volumes:
+      - /nfs/configs/netbird/netbird:/var/lib/netbird
+      - /nfs/configs/netbird/letsencrypt:/etc/letsencrypt:ro
+      - /nfs/configs/netbird/management.json:/etc/netbird/management.json
+    #ports:
+    #  - $NETBIRD_MGMT_API_PORT:443 #API port
+  #    # command for Let's Encrypt validation without dashboard container
+  #    command: ["--letsencrypt-domain", "$NETBIRD_LETSENCRYPT_DOMAIN", "--log-file", "console"]
+    command: [
+      "--port", "443",
+      "--log-file", "console",
+      "--disable-anonymous-metrics=true",
+      "--single-account-mode-domain=netbird.ianb.be",
+      "--dns-domain=netbird.vpn"
+      ]
+    deploy:
+      replicas: 1
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.netbird-api.rule=Host(`netbird.ianb.be`) && PathPrefix(`/api`)
+        - traefik.http.routers.netbird-api.entrypoints=websecure
+        - traefik.http.routers.netbird-api.tls=true
+        - traefik.http.routers.netbird-api.tls.certresolver=production
+        - traefik.http.routers.netbird-api.service=all_netbird-api
+        - traefik.http.services.all_netbird-api.loadbalancer.passHostHeader=true
+        - traefik.http.services.all_netbird-api.loadbalancer.server.port=443
+
+        - traefik.http.routers.netbird-management.rule=Host(`netbird.ianb.be`) && PathPrefix(`/management.ManagementService/`)
+        - traefik.http.routers.netbird-management.entrypoints=websecure
+        - traefik.http.routers.netbird-management.tls=true
+        - traefik.http.routers.netbird-management.tls.certresolver=production
+        - traefik.http.routers.netbird-management.service=all_netbird-management
+        - traefik.http.services.all_netbird-management.loadbalancer.passHostHeader=true
+        - traefik.http.services.all_netbird-management.loadbalancer.server.port=443
+        - traefik.http.services.all_netbird-management.loadbalancer.server.scheme=h2c
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  # Coturn
+  #netbird-coturn:
+  #  image: coturn/coturn:latest
+  #  restart: unless-stopped
+  #  domainname: netbird.ianb.be
+  #  #ports:
+  #  #  - 3478:3478/udp
+  #  #  - 49152-65535:49152-65535/udp
+  #  volumes:
+  #    - /nfs/configs/netbird/turnserver.conf:/etc/turnserver.conf:ro
+  #  #      - ./privkey.pem:/etc/coturn/private/privkey.pem:ro
+  #  #      - ./cert.pem:/etc/coturn/certs/cert.pem:ro
+  #  network_mode: host
+  #  command:
+  #    - -c /etc/turnserver.conf
+  #  deploy:
+  #    replicas: 0
+  #    placement:
+  #      constraints:
+  #        - node.hostname == plex-ubuntu
+
+  zitadel:
+    restart: 'always'
+    networks:
+      - 'zitadel'
+      - 'default'
+    image: 'ghcr.io/zitadel/zitadel:latest'
+    command: 'start-from-init --init-projections=true --config /zitadel-config.yaml --steps /zitadel-init-steps.yaml --masterkey "vvbsKqtO9nFRYfgJtEbxyiCfsGqonwOK"'
+    depends_on:
+      - zitadel-db
+    ports:
+      - '8080:8080'
+    volumes:
+      - "/nfs/configs/netbird/zitadel/zitadel-config.yaml:/zitadel-config.yaml:ro"
+      - "/nfs/configs/netbird/zitadel/zitadel-init-steps.yaml:/zitadel-init-steps.yaml:ro"
+    deploy:
+      replicas: 1
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.zitadel80.entrypoints: "web"
+        traefik.http.routers.zitadel80.rule: "Host(`zitadel.ianb.be`)"
+        traefik.http.routers.zitadel80.tls: "false"
+        traefik.http.routers.zitadel80.middlewares: "zitadel-https"
+        traefik.http.middlewares.zitadel-https.redirectscheme.scheme: "https"
+        traefik.http.routers.zitadel.entrypoints: "websecure"
+        traefik.http.routers.zitadel.rule: "Host(`zitadel.ianb.be`)"
+        traefik.http.routers.zitadel.tls: "true"
+        traefik.http.routers.zitadel.tls.certresolver: "production"
+        traefik.http.services.all_zitadel.loadbalancer.server.port: "8080"
+        traefik.http.services.all_zitadel.loadbalancer.server.scheme: h2c
+        traefik.http.services.all_zitadel.loadbalancer.passHostHeader: "true"
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  zitadel-db:
+    restart: 'always'
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+    networks:
+      - 'zitadel'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '20s'
+    ports:
+      - '5432:5432'
+    volumes:
+      - '/nfs/configs/netbird/zitadel/zitadel-db:/var/lib/postgresql/data:rw'
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+
+  wiki-js:
+    image: ghcr.io/requarks/wiki:2
+    depends_on:
+      - wiki-db
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: wiki-db
+      DB_PORT: 5432
+      DB_USER: wikijs
+      DB_PASS:
+      DB_NAME: wiki
+    restart: unless-stopped
+#    ports:
+#      - "80:3000"
+    volumes:
+      - /nfs/configs/wiki-js:/wiki-js
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.wiki80.entrypoints: "web"
+        traefik.http.routers.wiki80.rule: "Host(`wiki.ian.lan`)"
+        traefik.http.routers.wiki80.tls: "false"
+        traefik.http.routers.wiki80.middlewares: "wiki-https"
+        traefik.http.middlewares.wiki-https.redirectscheme.scheme: "https"
+        traefik.http.routers.wiki.entrypoints: "websecure"
+        traefik.http.routers.wiki.rule: "Host(`wiki.ian.lan`)"
+        traefik.http.routers.wiki.tls: "true"
+
+        traefik.http.routers.wiki80r.entrypoints: "web"
+        traefik.http.routers.wiki80r.rule: "Host(`wiki.ianb.be`)"
+        traefik.http.routers.wiki80r.tls: "false"
+        traefik.http.routers.wiki80r.middlewares: "wiki-https"
+        traefik.http.routers.wikir.entrypoints: "websecure"
+        traefik.http.routers.wikir.rule: "Host(`wiki.ianb.be`)"
+        traefik.http.routers.wikir.tls: "true"
+        traefik.http.routers.wikir.tls.certresolver: "production"
+
+        traefik.http.services.all_wiki.loadbalancer.server.port: "3000"
+      placement:
+        constraints:
+          - node.hostname == feul
+  wiki-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_PASSWORD:
+      POSTGRES_USER: wikijs
+    logging:
+      driver: "none"
+    restart: unless-stopped
+    volumes:
+      - /nfs/configs/wiki-js:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == feul
+
   flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -16,6 +264,7 @@ services:
       placement:
         constraints:
           - node.hostname == plex-ubuntu
+
   wyoming-whisper:
     restart: unless-stopped
     ports:
@@ -28,6 +277,7 @@ services:
       placement:
         constraints:
           - node.hostname == plex-ubuntu
+
   speedtest:
     restart: unless-stopped
     ports:
@@ -37,13 +287,19 @@ services:
       replicas: 0
       labels:
         traefik.enable: "true"
-        traefik.http.routers.speed.entrypoints: "web, websecure"
-        traefik.http.routers.speed.rule: "Host(`speed.ian.lan`)"
-        traefik.http.routers.speed.tls: "true"
+        traefik.http.routers.speed80.entrypoints: "web"
+        traefik.http.routers.speed80.rule: "Host(`speed.ian.lan`)"
+        traefik.http.routers.speed80.tls: "false"
+        traefik.http.routers.speed80.middlewares: "speed-https"
+        traefik.http.middlewares.speed-https.redirectscheme.scheme: "https"
+        traefik.http.routers.speed443.entrypoints: "websecure"
+        traefik.http.routers.speed443.rule: "Host(`speed.ian.lan`)"
+        traefik.http.routers.speed443.tls: "true"
         traefik.http.services.all_speedtest.loadbalancer.server.port: "3000"
       placement:
         constraints:
           - node.hostname == plex-ubuntu
+
 #  youtube-dl:
 #    image: "youtube-dl-server:master"
 #    # network_mode: "service:vpn"
@@ -64,10 +320,10 @@ services:
 #      placement:
 #        constraints:
 #          - node.hostname == plex-ubuntu
-  
+
   bazarr:
     environment:
-      - TZ=Europe/London
+      - TZ=Europe/Brussels
     image: lscr.io/linuxserver/bazarr:latest
     ipc: private
     restart: unless-stopped
@@ -79,7 +335,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.bazarr.entrypoints: "web, websecure"
+        traefik.http.routers.bazarr80.entrypoints: "web"
+        traefik.http.routers.bazarr80.rule: "Host(`bazarr.ian.lan`)"
+        traefik.http.routers.bazarr80.tls: "false"
+        traefik.http.routers.bazarr80.middlewares: "bazarr-https"
+        traefik.http.middlewares.bazarr-https.redirectscheme.scheme: "https"
+        traefik.http.routers.bazarr.entrypoints: "websecure"
         traefik.http.routers.bazarr.rule: "Host(`bazarr.ian.lan`)"
         traefik.http.routers.bazarr.tls: "true"
         traefik.http.services.all_bazarr.loadbalancer.server.port: "6767"
@@ -105,7 +366,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.grafana.entrypoints: "web, websecure"
+        traefik.http.routers.grafana80.entrypoints: "web"
+        traefik.http.routers.grafana80.rule: "Host(`graph.ianb.be`)"
+        traefik.http.routers.grafana80.tls: "false"
+        traefik.http.routers.grafana80.middlewares: "grafana-https"
+        traefik.http.middlewares.grafana-https.redirectscheme.scheme: "https"
+        traefik.http.routers.grafana.entrypoints: "websecure"
         traefik.http.routers.grafana.rule: "Host(`graph.ianb.be`)"
         traefik.http.routers.grafana.tls: "true"
         traefik.http.routers.grafana.tls.certresolver: "production"
@@ -134,6 +400,17 @@ services:
       - /nfs/configs/influxdb/config:/etc/influxdb2
       - /nfs/configs/influxdb/data:/var/lib/influxdb2
     deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.influxdb80.entrypoints: "web"
+        traefik.http.routers.influxdb80.rule: "Host(`influxdb.ian.lan`)"
+        traefik.http.routers.influxdb80.tls: "false"
+        traefik.http.routers.influxdb80.middlewares: "influxdb-https"
+        traefik.http.middlewares.influxdb-https.redirectscheme.scheme: "https"
+        traefik.http.routers.influxdb.entrypoints: "websecure"
+        traefik.http.routers.influxdb.rule: "Host(`influxdb.ian.lan`)"
+        traefik.http.routers.influxdb.tls: "true"
+        traefik.http.services.all_influxdb.loadbalancer.server.port: "8086"
       placement:
         constraints:
           - node.hostname == plex-ubuntu
@@ -141,9 +418,9 @@ services:
 
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v1.0.0-RC2
+    image: ghcr.io/mealie-recipes/mealie:latest
     ports:
-        - "9926:9000" # 
+        - "9926:9000" #
     volumes:
       - /nfs/configs/mealie:/app/data/
     environment:
@@ -173,7 +450,12 @@ services:
           - node.hostname == plex-ubuntu
       labels:
         traefik.enable: "true"
-        traefik.http.routers.mealie.entrypoints: "web, websecure"
+        traefik.http.routers.mealie80.entrypoints: "web"
+        traefik.http.routers.mealie80.rule: "Host(`meal.ianb.be`)"
+        traefik.http.routers.mealie80.tls: "false"
+        traefik.http.routers.mealie80.middlewares: "mealie-https"
+        traefik.http.middlewares.mealie-https.redirectscheme.scheme: "https"
+        traefik.http.routers.mealie.entrypoints: "websecure"
         traefik.http.routers.mealie.rule: "Host(`meal.ianb.be`)"
         traefik.http.routers.mealie.tls: "true"
         traefik.http.routers.mealie.tls.certresolver: "production"
@@ -222,7 +504,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.prowlarr.entrypoints: "web, websecure"
+        traefik.http.routers.prowlarr80.entrypoints: "web"
+        traefik.http.routers.prowlarr80.rule: "Host(`prowlarr.ian.lan`)"
+        traefik.http.routers.prowlarr80.tls: "false"
+        traefik.http.routers.prowlarr80.middlewares: "prowlarr-https"
+        traefik.http.middlewares.prowlarr-https.redirectscheme.scheme: "https"
+        traefik.http.routers.prowlarr.entrypoints: "websecure"
         traefik.http.routers.prowlarr.rule: "Host(`prowlarr.ian.lan`)"
         traefik.http.routers.prowlarr.tls: "true"
         traefik.http.services.all_prowlarr.loadbalancer.server.port: "9696"
@@ -248,7 +535,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.qbit.entrypoints: "web, websecure"
+        traefik.http.routers.qbit80.entrypoints: "web"
+        traefik.http.routers.qbit80.rule: "Host(`qbit.ian.lan`)"
+        traefik.http.routers.qbit80.tls: "false"
+        traefik.http.routers.qbit80.middlewares: "qbit-https"
+        traefik.http.middlewares.qbit-https.redirectscheme.scheme: "https"
+        traefik.http.routers.qbit.entrypoints: "websecure"
         traefik.http.routers.qbit.rule: "Host(`qbit.ian.lan`)"
         traefik.http.routers.qbit.tls: "true"
         traefik.http.services.all_qbittorrent.loadbalancer.server.port: "8081"
@@ -271,7 +563,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.radarr.entrypoints: "web, websecure"
+        traefik.http.routers.radarr80.entrypoints: "web"
+        traefik.http.routers.radarr80.rule: "Host(`radarr.ian.lan`)"
+        traefik.http.routers.radarr80.tls: "false"
+        traefik.http.routers.radarr80.middlewares: "radarr-https"
+        traefik.http.middlewares.radarr-https.redirectscheme.scheme: "https"
+        traefik.http.routers.radarr.entrypoints: "websecure"
         traefik.http.routers.radarr.rule: "Host(`radarr.ian.lan`)"
         traefik.http.routers.radarr.tls: "true"
         traefik.http.services.all_radarr.loadbalancer.server.port: "7878"
@@ -294,7 +591,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.sonarr.entrypoints: "web, websecure"
+        traefik.http.routers.sonarr80.entrypoints: "web"
+        traefik.http.routers.sonarr80.rule: "Host(`sonarr.ian.lan`)"
+        traefik.http.routers.sonarr80.tls: "false"
+        traefik.http.routers.sonarr80.middlewares: "sonarr-https"
+        traefik.http.middlewares.sonarr-https.redirectscheme.scheme: "https"
+        traefik.http.routers.sonarr.entrypoints: "websecure"
         traefik.http.routers.sonarr.rule: "Host(`sonarr.ian.lan`)"
         traefik.http.routers.sonarr.tls: "true"
         traefik.http.services.all_sonarr.loadbalancer.server.port: "8989"
@@ -331,18 +633,25 @@ services:
       placement:
         constraints:
           - node.hostname == plex-ubuntu
-  
+
   reverse-proxy:
       # The official v2 Traefik docker image
-      image: traefik:v2.10
+      image: traefik:v2.11
       # Enables the web UI and tells Traefik to listen to docker
       command: --api.insecure=true --providers.docker
       ports:
         # The HTTP port
-        - "80:80"
-        - "443:443"
+        - target: 443
+          published: 443
+          protocol: tcp
+          mode: host
+
+        - target: 80
+          published: 80
+          protocol: tcp
+          mode: host
         # The Web UI (enabled by --api.insecure=true)
-        - "8080:8080"
+        #- "8080:8080"
       volumes:
         - /disk2/configs/traefik:/etc/traefik
         # So that Traefik can listen to the Docker events
@@ -350,13 +659,24 @@ services:
       restart: unless-stopped
       deploy:
         replicas: 1
+        labels:
+          traefik.enable: "true"
+          traefik.http.routers.traefik80.entrypoints: "web"
+          traefik.http.routers.traefik80.rule: "Host(`traefik.ian.lan`)"
+          traefik.http.routers.traefik80.tls: "false"
+          traefik.http.routers.traefik80.middlewares: "traefik-https"
+          traefik.http.middlewares.traefik-https.redirectscheme.scheme: "https"
+          traefik.http.routers.traefik.entrypoints: "websecure"
+          traefik.http.routers.traefik.rule: "Host(`traefik.ian.lan`)"
+          traefik.http.routers.traefik.tls: "true"
+          traefik.http.services.all_reverse-proxy.loadbalancer.server.port: "8080"
         placement:
           constraints:
             - node.role == manager
 
   beammp-server:
     environment:
-      - "AUTH_KEY="
+      - "AUTH_KEY=06e66127-b56a-4c49-82f8-daef267ed2cd"
       - "NAME=rasta"
       - "DEBUG=false"
       - "PRIVATE=false"
@@ -379,10 +699,10 @@ services:
           - node.hostname == plex-ubuntu
 
   ganymede-api:
-    image: ghcr.io/zibbp/ganymede:main
+    image: ghcr.io/zibbp/ganymede:latest
     restart: unless-stopped
     environment:
-      - TZ=America/Chicago # Set to your timezone
+      - TZ=Europe/Brussels # Set to your timezone
       - DB_HOST=ganymede-db
       - DB_PORT=5432
       - DB_USER=ganymede
@@ -394,12 +714,12 @@ services:
       - TWITCH_CLIENT_ID=oqfeimlnlpkuclq8j2v8v245oijktb
       - TWITCH_CLIENT_SECRET=
       - FRONTEND_HOST=http://192.168.1.8:4801
-      - TEMPORAL_URL=192.168.1.8:7233
+      - TEMPORAL_URL=ganymede-temporal:7233
       # WORKER
-      - MAX_CHAT_DOWNLOAD_EXECUTIONS=5
-      - MAX_CHAT_RENDER_EXECUTIONS=3
-      - MAX_VIDEO_DOWNLOAD_EXECUTIONS=5
-      - MAX_VIDEO_CONVERT_EXECUTIONS=3
+      - MAX_CHAT_DOWNLOAD_EXECUTIONS=10
+      - MAX_CHAT_RENDER_EXECUTIONS=6
+      - MAX_VIDEO_DOWNLOAD_EXECUTIONS=10
+      - MAX_VIDEO_CONVERT_EXECUTIONS=6
       # OPTIONAL
       # - OAUTH_PROVIDER_URL=
       # - OAUTH_CLIENT_ID=
@@ -420,13 +740,34 @@ services:
           - node.hostname == plex-ubuntu
 
   ganymede-temporal:
-    image: ghcr.io/zibbp/ganymede-temporal:latest
-    restart: unless-stopped
-    volumes:
-      - /nfs/ganymede/temporal:/data
+    image: temporalio/auto-setup:1
+    container_name: ganymede-temporal
+    depends_on:
+      - ganymede-db
+    environment:
+      - DB=postgresql # this tells temporal to use postgres (not the db name)
+      - DB_PORT=5432
+      - POSTGRES_USER=ganymede
+      - POSTGRES_PWD=Masta123
+      - POSTGRES_SEEDS=ganymede-db # name of the db service
     ports:
       - 7233:7233
-      - 8233:8233 # web ui - optional  
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == plex-ubuntu
+
+  ganymede-temporal-ui:
+    image: temporalio/ui:latest
+    container_name: ganymede-temporal-ui
+    depends_on:
+      - ganymede-temporal
+    environment:
+      - TEMPORAL_ADDRESS=ganymede-temporal:7233
+      - TEMPORAL_CSRF_COOKIE_INSECURE=true
+    ports:
+      - 8233:8080
     deploy:
       replicas: 1
       placement:
@@ -448,14 +789,19 @@ services:
       replicas: 1
       labels:
         traefik.enable: "true"
-        traefik.http.routers.ganymede.entrypoints: "web, websecure"
+        traefik.http.routers.ganymede80.entrypoints: "web"
+        traefik.http.routers.ganymede80.rule: "Host(`ganymede.ian.lan`)"
+        traefik.http.routers.ganymede80.tls: "false"
+        traefik.http.routers.ganymede80.middlewares: "ganymede-https"
+        traefik.http.middlewares.ganymede-https.redirectscheme.scheme: "https"
+        traefik.http.routers.ganymede.entrypoints: "websecure"
         traefik.http.routers.ganymede.rule: "Host(`ganymede.ian.lan`)"
         traefik.http.routers.ganymede.tls: "true"
         traefik.http.services.all_ganymede-frontend.loadbalancer.server.port: "3000"
       placement:
         constraints:
           - node.hostname == plex-ubuntu
-  
+
   ganymede-db:
     image: postgres:14
     volumes:
@@ -471,7 +817,7 @@ services:
       placement:
         constraints:
           - node.hostname == plex-ubuntu
-  
+
   ganymede-nginx:
     image: nginx
     volumes:
@@ -493,10 +839,10 @@ services:
     volumes:
       - /nfs/nextcloud/db:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD= #change this
-      - MYSQL_PASSWORD= #change this
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_PASSWORD=
       - MYSQL_DATABASE=nextcloud
-      - MYSQL_USER=nextcloud 
+      - MYSQL_USER=nextcloud
     hostname: "next-db"
     deploy:
       replicas: 1
@@ -522,19 +868,31 @@ services:
       replicas: 1
       labels:
         traefik.enable: "true"
-        traefik.http.routers.nextcloudLan.entrypoints: "web, websecure"
-        traefik.http.routers.nextcloudLan.rule: "Host(`next.ian.lan`)"
-        traefik.http.routers.nextcloudLan.tls: "true"
-        traefik.http.routers.nextcloudLan.middlewares: "nextcloud_redirectregex"
-        traefik.http.routers.nextcloudWan.entrypoints: "web, websecure"
-        traefik.http.routers.nextcloudWan.rule: "Host(`next.ianb.be`)"
-        traefik.http.routers.nextcloudWan.tls: "true"
-        traefik.http.routers.nextcloudWan.tls.certresolver: "production"
+        traefik.http.routers.next80.entrypoints: "web"
+        traefik.http.routers.next80.rule: "Host(`next.ian.lan`)"
+        traefik.http.routers.next80.tls: "false"
+        traefik.http.routers.next80.middlewares: "next-https"
+        traefik.http.middlewares.next-https.redirectscheme.scheme: "https"
+        traefik.http.routers.next.entrypoints: "websecure"
+        traefik.http.routers.next.rule: "Host(`next.ian.lan`)"
+        traefik.http.routers.next.tls: "true"
+
+        traefik.http.routers.next80r.entrypoints: "web"
+        traefik.http.routers.next80r.rule: "Host(`next.ianb.be`)"
+        traefik.http.routers.next80r.tls: "false"
+        traefik.http.routers.next80r.middlewares: "next-https"
+        traefik.http.routers.nextr.entrypoints: "websecure"
+        traefik.http.routers.nextr.rule: "Host(`next.ianb.be`)"
+        traefik.http.routers.nextr.tls: "true"
+        traefik.http.routers.nextr.tls.certresolver: "production"
+
+        traefik.http.services.all_next-app.loadbalancer.server.port: "80"
+
         traefik.http.routers.nextcloudWan.middlewares: "nextcloud_redirectregex"
         traefik.http.middlewares.nextcloud_redirectregex.redirectregex.permanent: "true"
         traefik.http.middlewares.nextcloud_redirectregex.redirectregex.regex: "https://(.*)/.well-known/(?:card|cal)dav"
         traefik.http.middlewares.nextcloud_redirectregex.redirectregex.replacement: "https://$${1}/remote.php/dav"
-        traefik.http.services.all_next-app.loadbalancer.server.port: "80"
+
       placement:
         constraints:
           - node.hostname == plex-ubuntu
@@ -547,10 +905,16 @@ services:
     volumes:
       - /nfs/configs/homarr/configs:/app/data/configs
       - /nfs/configs/homarr/icons:/app/public/icons
+      - /nfs/configs/homarr/data:/data
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.homarr.entrypoints: "web, websecure"
+        traefik.http.routers.homarr80.entrypoints: "web"
+        traefik.http.routers.homarr80.rule: "Host(`homarr.ian.lan`)"
+        traefik.http.routers.homarr80.tls: "false"
+        traefik.http.routers.homarr80.middlewares: "homarr-https"
+        traefik.http.middlewares.homarr-https.redirectscheme.scheme: "https"
+        traefik.http.routers.homarr.entrypoints: "websecure"
         traefik.http.routers.homarr.rule: "Host(`homarr.ian.lan`)"
         traefik.http.routers.homarr.tls: "true"
         traefik.http.services.all_homarr.loadbalancer.server.port: "7575"
@@ -564,14 +928,19 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.it-tools.entrypoints: "web, websecure"
+        traefik.http.routers.it-tools80.entrypoints: "web"
+        traefik.http.routers.it-tools80.rule: "Host(`it-tools.ian.lan`)"
+        traefik.http.routers.it-tools80.tls: "false"
+        traefik.http.routers.it-tools80.middlewares: "it-tools-https"
+        traefik.http.middlewares.it-tools-https.redirectscheme.scheme: "https"
+        traefik.http.routers.it-tools.entrypoints: "websecure"
         traefik.http.routers.it-tools.rule: "Host(`it-tools.ian.lan`)"
         traefik.http.routers.it-tools.tls: "true"
         traefik.http.services.all_it-tools.loadbalancer.server.port: "80"
       placement:
         constraints:
           - node.hostname == feul
-  
+
   jellyfin:
     environment:
       - "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1"
@@ -600,12 +969,6 @@ services:
       - "/disk2/configs/jellyfin/config:/config"
       - "/nfs/media:/media"
     deploy:
-      labels:
-        traefik.enable: "true"
-        traefik.http.routers.jellyfin.entrypoints: "web, websecure"
-        traefik.http.routers.jellyfin.rule: "Host(`jellyfin.ian.lan`)"
-        traefik.http.routers.jellyfin.tls: "true"
-        traefik.http.services.all_jellyfin.loadbalancer.server.port: "8096"
       placement:
         constraints:
           - node.hostname == plex-ubuntu
@@ -646,7 +1009,12 @@ services:
     deploy:
       labels:
         traefik.enable: "true"
-        traefik.http.routers.uptime.entrypoints: "web, websecure"
+        traefik.http.routers.uptime80.entrypoints: "web"
+        traefik.http.routers.uptime80.rule: "Host(`uptime.ian.lan`)"
+        traefik.http.routers.uptime80.tls: "false"
+        traefik.http.routers.uptime80.middlewares: "uptime-https"
+        traefik.http.middlewares.uptime-https.redirectscheme.scheme: "https"
+        traefik.http.routers.uptime.entrypoints: "websecure"
         traefik.http.routers.uptime.rule: "Host(`uptime.ian.lan`)"
         traefik.http.routers.uptime.tls: "true"
         traefik.http.services.all_uptime-kuma.loadbalancer.server.port: "3001"
@@ -656,7 +1024,8 @@ services:
 networks:
   default:
     name: traefik
-    external: true      
+    external: true
   outside:
     external:
       name: "host"
+  zitadel:

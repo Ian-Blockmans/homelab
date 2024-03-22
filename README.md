@@ -12,8 +12,8 @@
 
 ## Docker Links
 
-| Container image | Link                                                                                                |
-| --------------- | --------------------------------------------------------------------------------------------------- |
+| Container image | Link                                                                                                  |
+| --------------- | ----------------------------------------------------------------------------------------------------- |
 | BeamMP          | <https://github.com/lionkor/beammp-docker>                                                            |
 | Ganynede        | <https://github.com/Zibbp/ganymede>                                                                   |
 | Grafana         | <https://grafana.com/grafana/download?edition=oss&pg=get&platform=docker&plcmt=selfmanaged-box1-cta1> |
@@ -25,3 +25,5 @@
 | nextcloud       | <https://github.com/nextcloud/all-in-one/tree/main/manual-install>                                    |
 | Tearfik         | <https://doc.traefik.io/traefik/getting-started/install-traefik/>                                     |
 | uptime kuma     | <https://github.com/louislam/uptime-kuma?tab=readme-ov-file#-how-to-install>                          |
+| netbird         | <https://docs.netbird.io/selfhosted/selfhosted-guide>                          |
+
