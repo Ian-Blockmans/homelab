@@ -1,0 +1,9 @@
+---
+- hosts: all
+
+  become: true
+  tasks: 
+    - name: cleanup remenent tmp files
+      ansible.builtin.file:
+        path: /disk2/tmp/*
+        state: absent
