@@ -8,5 +8,6 @@
         src: /disk2/configs/
         dest: /nfs/configs/
         archive: true
+        delegate_to: "{{ inventory_hostname }}"
         rsync_opts:
           - "-u"
