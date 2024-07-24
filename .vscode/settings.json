@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.yaml": "yaml"
+    },
+    "ansible.python.interpreterPath": "c:\\Users\\ian\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+}
