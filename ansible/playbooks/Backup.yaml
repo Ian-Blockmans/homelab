@@ -1,0 +1,12 @@
+---
+- hosts: NasUbuntu
+
+  become: true
+  tasks: 
+    - name: Backup ssd configs 
+      ansible.posix.synchronize:
+        src: /disk2/configs/
+        dest: /nfs/configs/
+        archive: true
+        rsync_opts:
+          - "-u"
