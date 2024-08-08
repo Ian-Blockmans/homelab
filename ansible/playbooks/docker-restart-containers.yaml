@@ -9,19 +9,19 @@
         restart: yes
         image: jellyfin/jellyfin:latest
         env:
-          - "HEALTHCHECK_URL=http://192.168.1.8:8096/health"
-          - "JELLYFIN_CACHE_DIR=/cache"
-          - "JELLYFIN_CONFIG_DIR=/config/config"
-          - "JELLYFIN_DATA_DIR=/config"
-          - "JELLYFIN_FFMPEG=/usr/lib/jellyfin-ffmpeg/ffmpeg"
-          - "JELLYFIN_LOG_DIR=/config/log"
-          - "JELLYFIN_WEB_DIR=/jellyfin/jellyfin-web"
-          - "LANG=en_US.UTF-8"
-          - "LANGUAGE=en_US:en"
-          - "LC_ALL=en_US.UTF-8"
-          - "NVIDIA_DRIVER_CAPABILITIES=compute,video,utility"
-          - "NVIDIA_VISIBLE_DEVICES=all"
-          - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          HEALTHCHECK_URL: http://192.168.1.8:8096/health
+          JELLYFIN_CACHE_DIR: /cache
+          JELLYFIN_CONFIG_DIR: /config/config
+          JELLYFIN_DATA_DIR: /config
+          JELLYFIN_FFMPEG: /usr/lib/jellyfin-ffmpeg/ffmpeg
+          JELLYFIN_LOG_DIR: /config/log
+          JELLYFIN_WEB_DIR: /jellyfin/jellyfin-web
+          LANG: en_US.UTF-8
+          LANGUAGE: en_US:en
+          LC_ALL: en_US.UTF-8
+          NVIDIA_DRIVER_CAPABILITIES: compute,video,utility
+          NVIDIA_VISIBLE_DEVICES: all
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         network_mode: 'host'
         restart_policy: "unless-stopped"
         volumes:
