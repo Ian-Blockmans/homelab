@@ -7,6 +7,7 @@
         name: media-server-jellyfin-1
         state: started
         restart: yes
+        image: jellyfin/jellyfin:latest
 
 
     - name: restart plex
