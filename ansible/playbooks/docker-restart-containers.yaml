@@ -1,0 +1,15 @@
+---
+- hosts: all
+
+  tasks:
+    - name: restart jellyfin
+      community.docker.docker_container:
+        name: media-server-jellyfin-1
+        state: started
+        restart: true
+
+    - name: restart plex
+      community.docker.docker_container:
+        name: media-server-plex-1
+        state: started
+        restart: true
