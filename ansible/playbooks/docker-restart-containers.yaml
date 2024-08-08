@@ -30,7 +30,7 @@
           - "/disk2/configs/jellyfin/config:/config"
           - "/nfs/media:/media"
         device_requests:
-            driver: nvidia
+          - driver: nvidia
             count: 1
             capabilities:
               - gpu
