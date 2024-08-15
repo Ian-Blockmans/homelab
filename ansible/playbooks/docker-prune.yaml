@@ -1,0 +1,11 @@
+---
+- hosts: all
+
+  tasks:
+    - name: Prune everything
+      community.docker.docker_prune:
+        containers: false
+        images: true
+        networks: true
+        volumes: true
+        builder_cache: true
