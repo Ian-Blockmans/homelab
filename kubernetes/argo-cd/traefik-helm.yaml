@@ -6,7 +6,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Ian-Blockmans/homelab
-    path: 
+    path: kubernetes/helm/traefik/
   destination:
     server: "https://kubernetes.default.svc"
     namespace: networking
