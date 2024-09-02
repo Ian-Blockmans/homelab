@@ -72,6 +72,10 @@ volumes:
   - name: nfs-traefik
     mountPath: /etc/traefik/
 
+persistence:
+  existingClaim: true
+  volumeName: "nfs-traefik"
+
 deployment:
   initContainers:
     # The "volume-permissions" init container is required if you run into permission issues.
