@@ -136,6 +136,7 @@ additionalArguments:
 - --certificatesresolvers.production.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
 - --certificatesresolvers.production.acme.httpChallenge.entryPoint=web
 - --certificatesresolvers.production.acme.storage=/etc/traefik/certs/acme.json
+- --providers.file.filename=/etc/traefik/http.yaml
 
 # Ingress Dashboard
 extraObjects:
