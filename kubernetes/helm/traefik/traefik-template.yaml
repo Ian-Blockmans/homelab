@@ -4,17 +4,25 @@ metadata:
   name: traefik
 spec:
   project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    targetRevision: 30.0.2
+    helm:
+      valueFiles:
+        - $values/kubernetes/helm/traefik/traefik-values.yaml
+      releaseName: traefik
+    chart: traefik
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
   sources:
     - repoURL: https://traefik.github.io/charts
-      targetRevision: 30.0.2
+      targetRevision: 31.0.0
       helm:
-        releaseName: traefik
         valueFiles:
-        - $values/kubernetes/helm/traefik/traefik-values.yaml
+          - $values/kubernetes/helm/traefik/traefik-values.yaml
+        releaseName: traefik
       chart: traefik
     - repoURL: https://github.com/Ian-Blockmans/homelab/
       ref: values
-  destination:
-    server: "https://kubernetes.default.svc"
-    namespace: traefik
 
