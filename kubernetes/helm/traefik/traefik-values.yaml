@@ -67,10 +67,10 @@ env:
 #         key: apiKey
 #         name: cloudflare-credentials
 
-#nfs mount
-#volumes:
-#  - name: nfs-traefik
-#    mountPath: /etc/traefik/
+#nfs volume
+volumes:
+  - name: nfs-traefik
+    mountPath: /etc/traefik/
 
 securityContext:
   runAsUser: 1001
