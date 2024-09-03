@@ -80,7 +80,7 @@ persistence:
   enabled: true
   name: nfs-traefik
 #  path: /etc/traefik/
-  existingClaim: true
+  existingClaim: nfs-traefik
   volumeName: "nfs-traefik"
 
 #deployment:
