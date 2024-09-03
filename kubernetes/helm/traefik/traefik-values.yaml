@@ -72,6 +72,10 @@ volumes:
   - name: nfs-traefik
     mountPath: /etc/traefik/
 
+securityContext:
+  runAsUser: 1001
+  fsGroup: 1001
+
 persistence:
   existingClaim: true
   volumeName: "nfs-traefik"
