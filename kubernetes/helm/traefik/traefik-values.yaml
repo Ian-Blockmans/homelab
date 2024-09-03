@@ -105,22 +105,22 @@ ingressClass:
   isDefaultClass: true
 
 #certificate resolver
-certResolvers:
-  staging:
-    acme:
-      email: ian.blockmans@gmail.com
-      storage: /etc/traefik/certs/acme.json
-      caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
-      httpChallenge:
-        entryPoint: web
-
-  production:
-    acme:
-      email: ian.blockmans@gmail.com
-      storage: /etc/traefik/certs/acme.json
-      caServer: 'https://acme-v02.api.letsencrypt.org/directory'
-      httpChallenge:
-        entryPoint: web
+#certResolvers:
+#  staging:
+#    acme:
+#      email: ian.blockmans@gmail.com
+#      storage: /etc/traefik/certs/acme.json
+#      caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+#      httpChallenge:
+#        entryPoint: web
+#
+#  production:
+#    acme:
+#      email: ian.blockmans@gmail.com
+#      storage: /etc/traefik/certs/acme.json
+#      caServer: 'https://acme-v02.api.letsencrypt.org/directory'
+#      httpChallenge:
+#        entryPoint: web
 
 # Disable default ingress for Dashboard
 ingressRoute:
