@@ -155,10 +155,6 @@ additionalArguments:
 - --certificatesresolvers.production.acme.httpChallenge.entryPoint=web
 - --certificatesresolvers.production.acme.storage=/etc/traefik/certs/acme.json
 
-- --tls.stores
-
-
-
 # Ingress Dashboard
 extraObjects:
   - apiVersion: v1
