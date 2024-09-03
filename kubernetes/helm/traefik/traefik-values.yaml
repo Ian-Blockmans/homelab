@@ -39,6 +39,8 @@ logs:
 
 ports:
 # Configure your entrypoints here...
+  traefik:
+    port: 8080
   web:
     port: 80
     # (optional) Permanent Redirect to HTTPS
