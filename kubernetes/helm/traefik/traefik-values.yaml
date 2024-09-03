@@ -68,9 +68,9 @@ env:
 #         name: cloudflare-credentials
 
 #nfs volume
-volumes:
-  - name: nfs-traefik
-    mountPath: /etc/traefik/
+#volumes:
+#  - name: nfs-traefik
+#    mountPath: /etc/traefik/
 
 securityContext:
   runAsUser: 1001
