@@ -79,7 +79,7 @@ securityContext:
 persistence:
   enabled: true
   name: nfs-traefik
-#  path: /etc/traefik/
+  path: /etc/traefik/
   existingClaim: nfs-traefik
 
 #deployment:
