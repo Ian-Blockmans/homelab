@@ -40,10 +40,12 @@ logs:
 ports:
 # Configure your entrypoints here...
   web:
+    port: 80
     # (optional) Permanent Redirect to HTTPS
     redirectTo:
       port: websecure
   websecure:
+    port: 443
     tls:
       enabled: true
       # (optional) Set a Default CertResolver
@@ -66,11 +68,6 @@ env:
 #       secretKeyRef:
 #         key: apiKey
 #         name: cloudflare-credentials
-
-#nfs volume
-#volumes:
-#  - name: nfs-traefik
-#    mountPath: /etc/traefik/
 
 securityContext:
   runAsUser: 1001
