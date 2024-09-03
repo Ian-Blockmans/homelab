@@ -81,7 +81,6 @@ persistence:
   name: nfs-traefik
 #  path: /etc/traefik/
   existingClaim: nfs-traefik
-  volumeName: "nfs-traefik"
 
 #deployment:
 #  initContainers:
