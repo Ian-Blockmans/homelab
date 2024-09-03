@@ -41,6 +41,8 @@ ports:
 # Configure your entrypoints here...
   traefik:
     port: 8080
+    expose:
+      default: true
     exposedPort: 8080
   web:
     port: 80
