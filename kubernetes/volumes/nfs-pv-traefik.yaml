@@ -9,7 +9,7 @@ spec:
     - ReadWriteMany
   storageClassName: ""
   nfs:
-    server: 192.168.1.8
+    server: 192.168.1.5
     path: "/mnt/spark/NFSdocker/nfsdckr/configs/traefik-kube"
   claimRef:
     name: nfs-traefik
