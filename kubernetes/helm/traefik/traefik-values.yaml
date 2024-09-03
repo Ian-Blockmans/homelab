@@ -96,12 +96,12 @@ persistence:
 #          mountPath: /etc/traefik/
 
 #default selfsigned certificates
-#tlsStore:
-#  default:
-#    defaultCertificate:
-#      secretName: selfsigned
-#      certFile: /etc/traefik/self-signed-ssl/fullchain.pem
-#      keyFile: /etc/traefik/self-signed-ssl/cert-key.pem
+tlsStore:
+  default:
+    defaultCertificate:
+      secretName: selfsigned
+      certFile: /etc/traefik/self-signed-ssl/fullchain.pem
+      keyFile: /etc/traefik/self-signed-ssl/cert-key.pem
 
 # Set Traefik as your default Ingress Controller, according to Kubernetes 1.19+ changes.
 ingressClass:
@@ -109,32 +109,55 @@ ingressClass:
   isDefaultClass: true
 
 #certificate resolver
-#certResolvers:
-#  staging:
-#    acme:
-#      email: ian.blockmans@gmail.com
-#      storage: /etc/traefik/certs/acme.json
-#      caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
-#      httpChallenge:
-#        entryPoint: web
-#
-#  production:
-#    acme:
-#      email: ian.blockmans@gmail.com
-#      storage: /etc/traefik/certs/acme.json
-#      caServer: 'https://acme-v02.api.letsencrypt.org/directory'
-#      httpChallenge:
-#        entryPoint: web
+certResolvers:
+  staging:
+    acme:
+      email: ian.blockmans@gmail.com
+      storage: /etc/traefik/certs/acme.json
+      caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+      httpChallenge:
+        entryPoint: web
+
+  production:
+    acme:
+      email: ian.blockmans@gmail.com
+      storage: /etc/traefik/certs/acme.json
+      caServer: 'https://acme-v02.api.letsencrypt.org/directory'
+      httpChallenge:
+        entryPoint: web
 
 # Disable default ingress for Dashboard
 ingressRoute:
   dashboard:
     enabled: false
 
+providers:
+  file:
+    # -- Create a file provider
+    enabled: true
+    # -- Allows Traefik to automatically watch for file changes
+    watch: true
+    # -- File content (YAML format, go template supported) (see https://doc.traefik.io/traefik/providers/file/)
+    content: /etc/traefik/http.yaml
+
 additionalArguments:
 - "--api.insecure=true"
 # Create the service, middleware and Ingress used to expose the dashboard (can also be created in another way).
 # /!\ Yes, you need to replace "changeme" password with a better one. /!\
+
+# Prod / Staging Example:
+- --certificatesresolvers.staging.acme.email=ian.blockmans@gmail.com
+- --certificatesresolvers.staging.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+- --certificatesresolvers.staging.acme.httpChallenge.entryPoint=web
+- --certificatesresolvers.staging.acme.storage=/etc/traefik/certs/acme.json
+- --certificatesresolvers.production.acme.email=ian.blockmans@gmail.com
+- --certificatesresolvers.production.acme.caServer=https://acme-v02.api.letsencrypt.org/directory
+- --certificatesresolvers.production.acme.httpChallenge.entryPoint=web
+- --certificatesresolvers.production.acme.storage=/etc/traefik/certs/acme.json
+
+- --tls.stores
+
+
 
 # Ingress Dashboard
 extraObjects:
