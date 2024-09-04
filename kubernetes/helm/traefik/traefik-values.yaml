@@ -137,6 +137,8 @@ additionalArguments:
 
 - --providers.kubernetesingress.ingressendpoint.ip=127.0.0.1
 
+- --providers.redis.endpoints=192.168.1.8:6379
+
 # Ingress Dashboard
 extraObjects:
   - apiVersion: v1
