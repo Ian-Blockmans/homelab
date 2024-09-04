@@ -144,15 +144,15 @@ def file(net, port, ip, subdomain):
 def container(net, port, subdomain, cname):
     if net == 'l':
         print('        traefik.enable: \"true\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.tls: \"false"',
-        '\n        traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
-        '\n        traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
-        '\n        traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
-        '\n        traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'.tls: \"true\"',
-        '\n        traefik.http.services.'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
+        '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false"',
+        '\n      traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
+        '\n      traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
+        '\n      traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
+        '\n      traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'.tls: \"true\"',
+        '\n      traefik.http.services.'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
 
     if net == 'w':
         prod = 'na'
