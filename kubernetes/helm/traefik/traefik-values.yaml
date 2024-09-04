@@ -130,6 +130,7 @@ additionalArguments:
 - --providers.file.directory=/etc/traefik/
 - --providers.file.watch=true
 - --providers.kubernetesingress.ingressendpoint.ip=127.0.0.1
+- --providers.docker.endpoint=ssh://ian@192.168.1.8
 
 # Ingress Dashboard
 extraObjects:
