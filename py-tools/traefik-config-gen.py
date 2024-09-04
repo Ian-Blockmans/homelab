@@ -23,9 +23,9 @@ def main():
                 print('not a number')
 
         config = 'na'
-        while config != 'c' and config != 'f':
-            config = input('container or file?[c/f]')
-            if config != 'c' and config != 'f':
+        while config != 'c' and config != 'f' and config != 'k':
+            config = input('container or file?[c/f/k]')
+            if config != 'c' and config != 'f' and config != 'k':
                 print('not c or f.')
 
 
@@ -152,7 +152,7 @@ def container(net, port, subdomain, cname):
         '\n        traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
         '\n        traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
         '\n        traefik.http.routers.'+ subdomain +'.tls: \"true\"',
-        '\n        traefik.http.services.all_'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
+        '\n        traefik.http.services.'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
 
     if net == 'w':
         prod = 'na'
