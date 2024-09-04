@@ -108,10 +108,12 @@ ingressClass:
   enabled: true
   isDefaultClass: true
 
-# Disable default ingress for Dashboard
+# default ingress for Dashboard
 ingressRoute:
   dashboard:
     enabled: false
+    matchRule: Host(`traefik.ian.lan`) && PathPrefix(`/`)
+    entryPoints: ["websecure"]
 
 additionalArguments:
 - "--api.insecure=true"
@@ -136,38 +138,38 @@ additionalArguments:
 - --providers.redis.endpoints=192.168.1.8:6379
 
 # Ingress Dashboard
-extraObjects:
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      name: traefik-api
-    spec:
-      type: ClusterIP
-      selector:
-        app.kubernetes.io/name: traefik
-        app.kubernetes.io/instance: traefik-default
-      ports:
-      - port: 8080
-        name: traefik
-        targetPort: 8080
-        protocol: TCP
-
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: traefik-dashboard
-      annotations:
-        traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    spec:
-      rules:
-      - host: traefik.ian.lan
-        http:
-          paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: traefik-api
-                port:
-                  number: 8080
-                  #name: traefik
+#extraObjects:
+#  - apiVersion: v1
+#    kind: Service
+#    metadata:
+#      name: traefik-api
+#    spec:
+#      type: ClusterIP
+#      selector:
+#        app.kubernetes.io/name: traefik
+#        app.kubernetes.io/instance: traefik-default
+#      ports:
+#      - port: 8080
+#        name: traefik
+#        targetPort: 8080
+#        protocol: TCP
+#
+#  - apiVersion: networking.k8s.io/v1
+#    kind: Ingress
+#    metadata:
+#      name: traefik-dashboard
+#      annotations:
+#        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+#    spec:
+#      rules:
+#      - host: traefik.ian.lan
+#        http:
+#          paths:
+#          - path: /
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: traefik-api
+#                port:
+#                  number: 8080
+#                  #name: traefik
