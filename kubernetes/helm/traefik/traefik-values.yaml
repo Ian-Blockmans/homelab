@@ -170,4 +170,4 @@ extraObjects:
                 name: traefik-api
                 port:
                   number: 8080
-                  name: traefik
+                  #name: traefik
