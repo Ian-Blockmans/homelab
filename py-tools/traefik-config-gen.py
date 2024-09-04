@@ -143,7 +143,8 @@ def file(net, port, ip, subdomain):
 
 def container(net, port, subdomain, cname):
     if net == 'l':
-        print('      traefik.enable: \"true\"',
+        print('    labels:',
+        '\n      traefik.enable: \"true\"',
         '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
         '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
         '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false"',
@@ -166,7 +167,8 @@ def container(net, port, subdomain, cname):
                 else:
                     print('not p or s. ')
 
-        print('      traefik.enable: \"true\"',
+        print('    labels:',
+        '\n      traefik.enable: \"true\"',
         '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
         '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
         '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false\"',
@@ -190,7 +192,8 @@ def container(net, port, subdomain, cname):
                 else:
                     print('not p or s. ')
 
-        print('      traefik.enable: \"true\"',
+        print('    labels:',
+        '\n      traefik.enable: \"true\"',
         '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
         '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
         '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false"',
