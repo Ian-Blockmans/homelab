@@ -95,13 +95,13 @@ persistence:
 #        - name: nfs-traefik
 #          mountPath: /etc/traefik/
 
-#default selfsigned certificates
-tlsStore:
-  default:
-    defaultCertificate:
-      secretName: selfsigned
-      certFile: /etc/traefik/self-signed-ssl/fullchain.pem
-      keyFile: /etc/traefik/self-signed-ssl/cert-key.pem
+##default selfsigned certificates
+#tlsStore:
+#  default:
+#    defaultCertificate:
+#      secretName: selfsigned
+#      certFile: /etc/traefik/self-signed-ssl/fullchain.pem
+#      keyFile: /etc/traefik/self-signed-ssl/cert-key.pem
 
 # Set Traefik as your default Ingress Controller, according to Kubernetes 1.19+ changes.
 ingressClass:
