@@ -167,16 +167,16 @@ def container(net, port, subdomain, cname):
                     print('not p or s. ')
 
         print('        traefik.enable: \"true\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.tls: \"false\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
-        '\n        traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
-        '\n        traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
-        '\n        traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'.tls: \"true\"',
-        '\n        traefik.http.routers.'+ subdomain +'.tls.certresolver: \"'+ cert +'\"',
-        '\n        traefik.http.services.all_'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
+        '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
+        '\n      traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
+        '\n      traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
+        '\n      traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'.tls: \"true\"',
+        '\n      traefik.http.routers.'+ subdomain +'.tls.certresolver: \"'+ cert +'\"',
+        '\n      traefik.http.services.'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
     
     if net == 'b':
         prod = 'na'
@@ -191,23 +191,23 @@ def container(net, port, subdomain, cname):
                     print('not p or s. ')
 
         print('        traefik.enable: \"true\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'80.tls: \"false"',
-        '\n        traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
-        '\n        traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
-        '\n        traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
-        '\n        traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'.tls: \"true\"',
-        '\n\n        traefik.http.routers.'+ subdomain +'80r.entrypoints: \"web\"',
-        '\n        traefik.http.routers.'+ subdomain +'80r.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'80r.tls: \"false\"',
-        '\n        traefik.http.routers.'+ subdomain +'80r.middlewares: \"'+ subdomain +'-https\"',
-        '\n        traefik.http.routers.'+ subdomain +'r.entrypoints: \"websecure\"',
-        '\n        traefik.http.routers.'+ subdomain +'r.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
-        '\n        traefik.http.routers.'+ subdomain +'r.tls: \"true\"',
-        '\n        traefik.http.routers.'+ subdomain +'r.tls.certresolver: \"'+ cert +'\"',
-        '\n\n        traefik.http.services.all_'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
+        '\n      traefik.http.routers.'+ subdomain +'80.entrypoints: \"web\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'80.tls: \"false"',
+        '\n      traefik.http.routers.'+ subdomain +'80.middlewares: \"'+ subdomain +'-https\"',
+        '\n      traefik.http.middlewares.'+ subdomain +'-https.redirectscheme.scheme: \"https\"',
+        '\n      traefik.http.routers.'+ subdomain +'.entrypoints: \"websecure\"',
+        '\n      traefik.http.routers.'+ subdomain +'.rule: \"Host(`'+ subdomain +'.ian.lan`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'.tls: \"true\"',
+        '\n\n      traefik.http.routers.'+ subdomain +'80r.entrypoints: \"web\"',
+        '\n      traefik.http.routers.'+ subdomain +'80r.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'80r.tls: \"false\"',
+        '\n      traefik.http.routers.'+ subdomain +'80r.middlewares: \"'+ subdomain +'-https\"',
+        '\n      traefik.http.routers.'+ subdomain +'r.entrypoints: \"websecure\"',
+        '\n      traefik.http.routers.'+ subdomain +'r.rule: \"Host(`'+ subdomain +'.ianb.be`)\"',
+        '\n      traefik.http.routers.'+ subdomain +'r.tls: \"true\"',
+        '\n      traefik.http.routers.'+ subdomain +'r.tls.certresolver: \"'+ cert +'\"',
+        '\n\n      traefik.http.services.'+ cname +'.loadbalancer.server.port: \"'+ port +'\"')
 
 if __name__ == '__main__':
     main()
