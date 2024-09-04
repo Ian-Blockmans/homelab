@@ -129,6 +129,7 @@ additionalArguments:
 - --certificatesresolvers.production.acme.storage=/etc/traefik/certs/acme.json
 - --providers.file.directory=/etc/traefik/
 - --providers.file.watch=true
+- --providers.kubernetesingress.ingressendpoint.ip=127.0.0.1
 
 # Ingress Dashboard
 extraObjects:
