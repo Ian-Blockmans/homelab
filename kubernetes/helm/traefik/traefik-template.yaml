@@ -4,14 +4,6 @@ metadata:
   name: traefik
 spec:
   project: default
-#  source:
-#    repoURL: https://traefik.github.io/charts
-#    targetRevision: 30.0.2
-#    helm:
-#      valueFiles:
-#        - $values/kubernetes/helm/traefik/traefik-values.yaml
-#      releaseName: traefik
-#    chart: traefik
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
