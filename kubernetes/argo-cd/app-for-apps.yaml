@@ -13,4 +13,4 @@ spec:
   source:
     path: kubernetes/argo-cd-apps
     repoURL: https://github.com/Ian-Blockmans/homelab/
-    targetRevision: master
+    targetRevision: main
