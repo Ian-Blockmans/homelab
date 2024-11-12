@@ -24,7 +24,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: Longhorn-ingress # <-- Replace with your IngressRoute name
+  name: longhorn-ingress # <-- Replace with your IngressRoute name
   namespace: longhorn  # <-- Replace with your namespace
 spec:
   entryPoints:
