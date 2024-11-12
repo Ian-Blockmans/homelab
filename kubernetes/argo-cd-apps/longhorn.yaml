@@ -28,7 +28,6 @@ metadata:
   namespace: longhorn  # <-- Replace with your namespace
 spec:
   entryPoints:
-  - web
   - websecure
   routes:
   - match: Host(`longhorn.ian.lan`)  # <-- Replace with your FQDN
@@ -36,5 +35,3 @@ spec:
     services:
     - name: longhorn-frontend  # <-- Replace with your service name
       port: 80
-  tls:
-    certResolver: default
