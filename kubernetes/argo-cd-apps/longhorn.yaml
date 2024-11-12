@@ -36,5 +36,5 @@ spec:
     services:
     - name: longhorn-frontend  # <-- Replace with your service name
       port: 80
-    tls:
-      certResolver: default
+  tls:
+    certResolver: default
