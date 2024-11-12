@@ -12,7 +12,7 @@ spec:
       targetRevision: 31.1.1
       helm:
         valueFiles:
-          - $values/kubernetes/helm-config/traefik/traefik-values.yaml
+          - $values/kubernetes/helm-config/traefik-values.yaml
         releaseName: traefik
       chart: traefik
     - repoURL: https://github.com/Ian-Blockmans/homelab/
