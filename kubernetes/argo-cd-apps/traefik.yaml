@@ -9,7 +9,7 @@ spec:
     namespace: traefik
   sources:
     - repoURL: https://traefik.github.io/charts
-      targetRevision: 31.1.1
+      targetRevision: 33.0.0
       helm:
         valueFiles:
           - $values/kubernetes/helm-config/traefik-values.yaml
