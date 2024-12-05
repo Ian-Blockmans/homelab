@@ -7,6 +7,10 @@
     ansible_ssh_retries: 3
     ansible_shell_type: powershell
   tasks:
+    - name: Delete mapped drive M for next execte
+      community.windows.win_mapped_drive:
+        letter: M
+        state: absent
     - name: Map share
       community.windows.win_mapped_drive:
         letter: M
@@ -20,7 +24,7 @@
         dest: M:\factorygame_backup\SaveGames
         recurse: true
         purge: true
-    #- name: Delete mapped drive M for next execte
-    #  community.windows.win_mapped_drive:
-    #    letter: M
-    #    state: absent
+    - name: Delete mapped drive M for next execte
+      community.windows.win_mapped_drive:
+        letter: M
+        state: absent
