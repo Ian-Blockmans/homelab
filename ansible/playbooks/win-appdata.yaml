@@ -1,6 +1,11 @@
 ---
 - hosts: windows
-
+  vars:
+    ansible_user: "ian"
+    ansible_port: 22
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_ssh_retries: 3
+    ansible_shell_type: powershell
   tasks:
     - name: robocopy appdata
       community.windows.win_robocopy:
