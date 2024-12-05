@@ -20,3 +20,7 @@
         dest: M:\factorygame_backup\SaveGames
         recurse: true
         purge: true
+    - name: Delete mapped drive M for next execte
+      community.windows.win_mapped_drive:
+        letter: M
+        state: absent
