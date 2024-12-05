@@ -7,20 +7,20 @@
     ansible_ssh_retries: 3
     ansible_shell_type: powershell
   tasks:
-    - name: Map share
-      community.windows.win_mapped_drive:
-        letter: M
-        path: \\192.168.1.5\smbhome
-        state: present
-        username: 'ian'
-        password: 'masta'
+    #- name: Map share
+    #  community.windows.win_mapped_drive:
+    #    letter: M
+    #    path: \\192.168.1.5\smbhome
+    #    state: present
+    #    username: 'ian'
+    #    password: 'masta'
     - name: robocopy appdata
       community.windows.win_robocopy:
         src: C:\Users\ian\AppData\Local\FactoryGame\Saved\SaveGames
         dest: M:\factorygame_backup\SaveGames
         recurse: true
         purge: true
-    - name: Delete mapped drive M for next execte
-      community.windows.win_mapped_drive:
-        letter: M
-        state: absent
+    #- name: Delete mapped drive M for next execte
+    #  community.windows.win_mapped_drive:
+    #    letter: M
+    #    state: absent
