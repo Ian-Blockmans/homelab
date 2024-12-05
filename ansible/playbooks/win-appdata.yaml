@@ -7,10 +7,6 @@
     ansible_ssh_retries: 3
     ansible_shell_type: powershell
   tasks:
-    - name: Delete mapped drive M for next execte
-      community.windows.win_mapped_drive:
-        letter: M
-        state: absent
     - name: Map share
       community.windows.win_mapped_drive:
         letter: M
