@@ -9,5 +9,5 @@
         dest: /nfs/configs/
         archive: true
         rsync_opts:
-          - "-u"
+          - "-au"
       delegate_to: "{{ inventory_hostname }}"

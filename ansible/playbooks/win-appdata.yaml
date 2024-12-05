@@ -1,0 +1,10 @@
+---
+- hosts: all
+
+  tasks:
+    - name: robocopy appdata
+      community.windows.win_robocopy:
+        src: C:\Users\ian\AppData\Local\FactoryGame\Saved\SaveGames
+        dest: Y:\factorygame_backup
+        recurse: true
+        purge: true
