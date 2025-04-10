@@ -1,20 +1,20 @@
-#apiVersion: argoproj.io/v1alpha1
-#kind: Application
-#metadata:
-#  name: traefik
-#spec:
-#  project: default
-#  destination:
-#    server: https://kubernetes.default.svc
-#    namespace: traefik
-#  sources:
-#    - repoURL: https://traefik.github.io/charts
-#      targetRevision: 33.0.0
-#      helm:
-#        valueFiles:
-#          - $values/kubernetes/helm-config/traefik-values.yaml
-#        releaseName: traefik
-#      chart: traefik
-#    - repoURL: https://github.com/Ian-Blockmans/homelab/
-#      ref: values
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  sources:
+    - repoURL: https://traefik.github.io/charts
+      targetRevision: 33.0.0
+      helm:
+        valueFiles:
+          - $values/kubernetes/helm-config/traefik-values.yaml
+        releaseName: traefik
+      chart: traefik
+    - repoURL: https://github.com/Ian-Blockmans/homelab/
+      ref: values
 
